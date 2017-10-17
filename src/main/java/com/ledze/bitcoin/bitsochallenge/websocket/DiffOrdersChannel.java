@@ -2,63 +2,65 @@ package com.ledze.bitcoin.bitsochallenge.websocket;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketHandler;
-import org.springframework.web.socket.WebSocketSession;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.simp.stomp.*;
 import org.springframework.web.socket.client.WebSocketClient;
-import org.springframework.web.socket.client.WebSocketConnectionManager;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
-import org.springframework.web.socket.handler.TextWebSocketHandler;
+import org.springframework.web.socket.messaging.WebSocketStompClient;
+
+import java.lang.reflect.Type;
+import java.util.Scanner;
 
 
-@Configuration
 public class DiffOrdersChannel {
     private static final Logger LOGGER = LoggerFactory.getLogger(DiffOrdersChannel.class);
     private static Object waitLock = new Object();
 
     private static final String WS_URI = "wss://ws.bitso.com";
 
-    public void init(){
-        try {
-            AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(ClientConfig.class);
-            LOGGER.info("\n\n\nWhen ready, press any key to exit\n\n\n");
-            System.in.read();
-            ctx.close();
-        } catch (Throwable t) {
-            LOGGER.error("error ",t);
-        } finally {
-            System.exit(0);
+    public void init() {
+        LOGGER.info("init DiffOrdersChannel...");
+        WebSocketClient client = new StandardWebSocketClient();
+
+        WebSocketStompClient stompClient = new WebSocketStompClient(client);
+        stompClient.setMessageConverter(new MappingJackson2MessageConverter());
+
+        StompSessionHandler sessionHandler = new ChallengeSessionHandler();
+        stompClient.connect(WS_URI, sessionHandler);
+
+        new Scanner(System.in).nextLine();
+    }
+
+    class ChallengeSessionHandler extends StompSessionHandlerAdapter {
+
+
+        private Logger logger = LoggerFactory.getLogger(ChallengeSessionHandler.class);
+
+        @Override
+        public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
+            logger.info("New session established : " + session.getSessionId());
+            session.subscribe("/subscribe", this);
+            logger.info("Subscribed to /subscribe");
+            session.send("", "{ action: 'subscribe', book: 'btc_mxn', type: 'diff-orders' }");
+            logger.info("Message sent to websocket server");
+        }
+
+        @Override
+        public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload, Throwable exception) {
+            logger.error("Got an exception", exception);
+        }
+
+        @Override
+        public Type getPayloadType(StompHeaders headers) {
+            return String.class;
+        }
+
+        @Override
+        public void handleFrame(StompHeaders headers, Object payload) {
+            logger.info("Received : " + payload );
         }
 
     }
 
-    @Configuration
-    static class ClientConfig {
-
-        @Bean
-        public WebSocketConnectionManager connectionManager() {
-            WebSocketConnectionManager manager = new WebSocketConnectionManager(client(), handler(), WS_URI);
-            manager.setAutoStartup(true);
-            return manager;
-        }
-
-        @Bean
-        public StandardWebSocketClient client() {
-            return new StandardWebSocketClient();
-        }
-
-        @Bean
-        public TextWebSocketHandler handler() {
-            return new TextWebSocketHandler() {
-                @Override
-                protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-                    LOGGER.info(message.getPayload());
-                }
-            };
-        }
-
-    }
 }

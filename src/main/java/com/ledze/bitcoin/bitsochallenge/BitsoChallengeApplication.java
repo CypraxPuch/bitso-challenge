@@ -1,6 +1,7 @@
 package com.ledze.bitcoin.bitsochallenge;
 
 import com.ledze.bitcoin.bitsochallenge.client.OrderBookClient;
+import com.ledze.bitcoin.bitsochallenge.websocket.DiffOrdersChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,5 +26,8 @@ public class BitsoChallengeApplication implements CommandLineRunner{
 		LOGGER.info("\nAvailableBook::btc_mxn:\n"+client.getAvailableBook("btc_mxn").toString());
 		LOGGER.info("\nOrderBook:\n"+client.getOrderBookList("btc_mxn", "true"));
 		//LOGGER.info("\nAvailableBooks:\n"+client.getAvailableBooks());
+
+		new DiffOrdersChannel().init();
+
 	}
 }
