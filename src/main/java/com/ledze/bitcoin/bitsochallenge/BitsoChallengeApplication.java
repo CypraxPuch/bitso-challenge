@@ -13,6 +13,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class BitsoChallengeApplication implements CommandLineRunner{
 
 	@Autowired private OrderBookClient client;
+	@Autowired private DiffOrdersChannel diffOrdersChannel;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(BitsoChallengeApplication.class);
 
@@ -22,12 +23,12 @@ public class BitsoChallengeApplication implements CommandLineRunner{
 
 	@Override
 	public void run(String... strings) throws Exception {
-		LOGGER.info("calling order book rest service");
+		/*LOGGER.info("calling order book rest service");
 		LOGGER.info("\nAvailableBook::btc_mxn:\n"+client.getAvailableBook("btc_mxn").toString());
-		LOGGER.info("\nOrderBook:\n"+client.getOrderBookList("btc_mxn", "true"));
+		LOGGER.info("\nOrderBook:\n"+client.getOrderBookList("btc_mxn", "true"));*/
 		//LOGGER.info("\nAvailableBooks:\n"+client.getAvailableBooks());
 
-		new DiffOrdersChannel().init();
+		diffOrdersChannel.init();
 
 	}
 }
