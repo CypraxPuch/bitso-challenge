@@ -1,22 +1,22 @@
 package com.ledze.bitcoin.bitsochallenge.websocket;
 
-import javax.websocket.*;
+import org.glassfish.tyrus.client.ClientManager;
 
-import org.glassfish.tyrus.client.*;
-import org.springframework.stereotype.Component;
-
+import javax.websocket.ClientEndpointConfig;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfig;
+import javax.websocket.Session;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 public class DiffOrdersChannelTyrus {
     private static CountDownLatch messageLatch;
-    private static final String SENT_MESSAGE = "{ action: 'subscribe', book: 'btc_mxn', type: 'diff-orders' }";
+    private static final String SENT_MESSAGE = "{\"action\":\"subscribe\",\"book\":\"btc_mxn\",\"type\":\"diff-orders\"}";
 
     public static void main(String[] args) {
         try {
-            messageLatch = new CountDownLatch(1);
 
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
@@ -32,20 +32,17 @@ public class DiffOrdersChannelTyrus {
                     try {
                         session.addMessageHandler(String.class, message -> {
                             System.out.println("Received message: " + message);
-                            messageLatch.countDown();
                         });
-                        System.out.println("waiting for 10sec...");
-                        messageLatch.await(10, TimeUnit.SECONDS);
                         System.out.println("send message.");
                         session.getBasicRemote().sendText(SENT_MESSAGE);
                         System.out.println("message send succesfully");
-                    } catch (IOException | InterruptedException e) {
+                    } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
             }, cec, new URI("wss://ws.bitso.com"));
-            messageLatch.await(10, TimeUnit.SECONDS);
-
+            
+            new Scanner(System.in).nextLine();
         } catch (Exception e) {
             e.printStackTrace();
         }
