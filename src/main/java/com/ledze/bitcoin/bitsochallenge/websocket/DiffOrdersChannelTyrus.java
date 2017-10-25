@@ -9,10 +9,8 @@ import javax.websocket.Session;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Scanner;
-import java.util.concurrent.CountDownLatch;
 
 public class DiffOrdersChannelTyrus {
-    private static CountDownLatch messageLatch;
     private static final String SENT_MESSAGE = "{\"action\":\"subscribe\",\"book\":\"btc_mxn\",\"type\":\"diff-orders\"}";
 
     public static void main(String[] args) {
@@ -41,7 +39,7 @@ public class DiffOrdersChannelTyrus {
                     }
                 }
             }, cec, new URI("wss://ws.bitso.com"));
-            
+
             new Scanner(System.in).nextLine();
         } catch (Exception e) {
             e.printStackTrace();
