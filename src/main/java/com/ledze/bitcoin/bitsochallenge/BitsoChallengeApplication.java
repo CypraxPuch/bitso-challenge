@@ -1,15 +1,15 @@
 package com.ledze.bitcoin.bitsochallenge;
 
-import com.ledze.bitcoin.bitsochallenge.client.OrderBookClient;
-import com.ledze.bitcoin.bitsochallenge.operation.OrderBookOp;
-import com.ledze.bitcoin.bitsochallenge.websocket.DiffOrdersChannel;
+import com.ledze.bitcoin.bitsochallenge.operation.OrderBookOperation;
+import com.ledze.bitcoin.bitsochallenge.service.DiffOrdersService;
 import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -17,13 +17,13 @@ import org.springframework.context.ConfigurableApplicationContext;
 @SpringBootApplication
 public class BitsoChallengeApplication  extends Application {
 
-	private static final Logger log = LoggerFactory.getLogger(BitsoChallengeApplication.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(BitsoChallengeApplication.class);
 	private ConfigurableApplicationContext applicationContext;
 
-	private static final String MAIN_FXML_FILE = "/fxml/hello.fxml";
+	private static final String MAIN_FXML_FILE = "/fxml/real-time-order-book-state.fxml";
 	private static final String APPLICATION_STYLE_SHEET = "/styles/styles.css";
 
-	@Autowired private OrderBookOp op;
+	@Autowired private OrderBookOperation op;
 
 	public static void main(String[] args) {
 		//SpringApplication.run(BitsoChallengeApplication.class, args);
@@ -36,12 +36,28 @@ public class BitsoChallengeApplication  extends Application {
 		app.setWebEnvironment(false);
 		applicationContext = app.run();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(this);
+
+		//starts the subscription to diffOrders channel and get the orderBook info.
+		op.init();
 	}
 
 	@Override
 	public void start(Stage stage) throws Exception {
-		op.init();
-		//stage.setScene(new Scene(mainLayout));
+
+		LOGGER.info("Loading FXML for main view from: {}", MAIN_FXML_FILE);
+		FXMLLoader loader = new FXMLLoader();
+		Parent rootNode = loader.load(
+				getClass().getResourceAsStream(
+						MAIN_FXML_FILE
+				)
+		);
+
+		LOGGER.info("Showing JavaFX scene");
+		Scene scene = new Scene(rootNode, 400, 200);
+		scene.getStylesheets().add(APPLICATION_STYLE_SHEET);
+
+		stage.setTitle("Hello JavaFX WebSockets");
+		stage.setScene(scene);
 		stage.show();
 	}
 
