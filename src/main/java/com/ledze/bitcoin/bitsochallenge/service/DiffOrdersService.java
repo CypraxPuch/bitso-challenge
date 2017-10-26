@@ -8,6 +8,8 @@ import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -24,6 +26,16 @@ public class DiffOrdersService extends Service<String> {
     @Override
     protected Task<String> createTask() {
         LOGGER.info("Subscribing and getting diff-orders info");
-        return new DiffOrdersTask(SENT_MESSAGE, getUrl());
+        return this.getDiffOrdersTask();
+    }
+
+    @Bean
+    @Lazy
+    private Task<String> getDiffOrdersTask(){
+        DiffOrdersTask task = new DiffOrdersTask();
+        task.setSubscriptionMessage(SENT_MESSAGE);
+        task.setServerEndpointUrl(getUrl());
+
+        return task;
     }
 }

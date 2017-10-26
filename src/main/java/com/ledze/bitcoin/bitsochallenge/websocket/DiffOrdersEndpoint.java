@@ -1,7 +1,10 @@
 package com.ledze.bitcoin.bitsochallenge.websocket;
 
+import com.ledze.bitcoin.bitsochallenge.configuration.StaticApplicationContext;
+import com.ledze.bitcoin.bitsochallenge.jms.Producer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
 
 import javax.websocket.*;
 import java.io.IOException;
@@ -14,15 +17,11 @@ public class DiffOrdersEndpoint {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DiffOrdersEndpoint.class);
 
-    private final String subscriptionMessage;
-    private       String response;
-    private       Throwable exception;
+    private String subscriptionMessage;
+    private String response;
+    private Throwable exception;
     private final CountDownLatch messageLatch = new CountDownLatch(1);
     private static final int REQUEST_TIMEOUT_SECS = 10;
-
-    public DiffOrdersEndpoint(String subscriptionMessage) {
-        this.subscriptionMessage = subscriptionMessage;
-    }
 
     @OnOpen
     public void onOpen(Session session) {
@@ -37,8 +36,10 @@ public class DiffOrdersEndpoint {
     @OnMessage
     public void processResponse(Session session, String message) {
 //        LOGGER.debug("Received response: '" + message + "' for request: '" + name + "' with session " + session.getId());
-        LOGGER.info(message);
+        //LOGGER.info(message);
         response = message;
+
+        ((Producer)StaticApplicationContext.getContext().getBean("producer")).send(message);
         messageLatch.countDown();
     }
 
@@ -54,9 +55,9 @@ public class DiffOrdersEndpoint {
      * or the communication request times out.
      *
      * @return the server response message.
-     * @throws TimeoutException if the server does not respond before the timeout value is reached.
+     * @throws TimeoutException     if the server does not respond before the timeout value is reached.
      * @throws InterruptedException if the communication thread is interrupted (e.g. thread.interrupt() is invoked on it for cancellation purposes).
-     * @throws IOException if a communication error occurs.
+     * @throws IOException          if a communication error occurs.
      */
     public String getResponse() throws TimeoutException, InterruptedException, IOException {
         if (messageLatch.await(REQUEST_TIMEOUT_SECS, TimeUnit.SECONDS)) {
@@ -69,4 +70,11 @@ public class DiffOrdersEndpoint {
         }
     }
 
+    public String getSubscriptionMessage() {
+        return subscriptionMessage;
+    }
+
+    public void setSubscriptionMessage(String subscriptionMessage) {
+        this.subscriptionMessage = subscriptionMessage;
+    }
 }

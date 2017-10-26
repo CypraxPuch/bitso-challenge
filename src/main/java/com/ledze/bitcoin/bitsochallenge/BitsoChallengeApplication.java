@@ -1,20 +1,25 @@
 package com.ledze.bitcoin.bitsochallenge;
 
 import com.ledze.bitcoin.bitsochallenge.operation.OrderBookOperation;
-import com.ledze.bitcoin.bitsochallenge.service.DiffOrdersService;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.apache.activemq.command.ActiveMQQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.jms.annotation.EnableJms;
+
+import javax.jms.Queue;
 
 @SpringBootApplication
+@EnableJms
 public class BitsoChallengeApplication  extends Application {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(BitsoChallengeApplication.class);
@@ -28,6 +33,11 @@ public class BitsoChallengeApplication  extends Application {
 	public static void main(String[] args) {
 		//SpringApplication.run(BitsoChallengeApplication.class, args);
 		launch(args);
+	}
+
+	@Bean
+	public Queue queue(){
+		return new ActiveMQQueue("difforders.queue");
 	}
 
 	@Override
