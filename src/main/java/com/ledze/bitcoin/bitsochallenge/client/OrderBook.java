@@ -5,7 +5,7 @@ import java.util.List;
 
 public class OrderBook {
     private String success;
-    private Date updatedAt;
+    private String updatedAt;
     private List<Bid> bids;
     private List<Ask> asks;
     private long sequence;
@@ -18,11 +18,11 @@ public class OrderBook {
         this.success = success;
     }
 
-    public Date getUpdatedAt() {
+    public String getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(String updatedAt) {
         this.updatedAt = updatedAt;
     }
 

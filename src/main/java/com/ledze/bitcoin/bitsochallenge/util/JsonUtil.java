@@ -1,6 +1,7 @@
 package com.ledze.bitcoin.bitsochallenge.util;
 
 
+import com.ledze.bitcoin.bitsochallenge.client.OrderBook;
 import com.ledze.bitcoin.bitsochallenge.pojo.DiffOrder;
 import com.ledze.bitcoin.bitsochallenge.pojo.DiffOrderPayload;
 import org.apache.commons.lang3.StringUtils;
@@ -26,18 +27,18 @@ public class JsonUtil {
                     switch (jsonParser.getString()) {
                         case "type":
                             jsonParser.next();
-                            diffOrder.setType(jsonParser.getString());
+                            diffOrder.setType( Optional.ofNullable(jsonParser.getString()).orElse(StringUtils.EMPTY) );
                             break;
                         case "book":
                             jsonParser.next();
-                            diffOrder.setBook(jsonParser.getString());
+                            diffOrder.setBook( Optional.ofNullable(jsonParser.getString()).orElse(StringUtils.EMPTY) );
                             break;
                         case "sequence":
                             jsonParser.next();
-                            diffOrder.setSequence(jsonParser.getInt());
+                            diffOrder.setSequence( jsonParser.getLong() );
                             break;
                         case "payload":
-                            diffOrder.setPayload(getDiffOrdersPayload(jsonParser));
+                            diffOrder.setPayload( getDiffOrdersPayload(jsonParser) );
                             break;
                         default:
                     }
@@ -77,15 +78,15 @@ public class JsonUtil {
                         break;
                     case "v":
                         jp.next();
-                        diffOrderPayload.setValue(Optional.ofNullable(jp.getString()).orElse(StringUtils.EMPTY));
+                        diffOrderPayload.setValue( Optional.ofNullable(jp.getString()).orElse(StringUtils.EMPTY) );
                         break;
                     case "o":
                         jp.next();
-                        diffOrderPayload.setOid(Optional.ofNullable(jp.getString()).orElse(StringUtils.EMPTY));
+                        diffOrderPayload.setOid( Optional.ofNullable(jp.getString()).orElse(StringUtils.EMPTY) );
                         break;
                     case "s":
                         jp.next();
-                        diffOrderPayload.setStatus(Optional.ofNullable(jp.getString()).orElse(StringUtils.EMPTY));
+                        diffOrderPayload.setStatus( Optional.ofNullable(jp.getString()).orElse(StringUtils.EMPTY) );
                         break;
                     default:
                         break;
@@ -99,5 +100,19 @@ public class JsonUtil {
         return diffOrderPayloadList;
     }
 
+    public static OrderBook json2OrderBook(String json){
+        OrderBook orderBook = null;
+        try (StringReader sr = new StringReader(json)) {
+            JsonParser jsonParser = Json.createParser(sr);
+
+            orderBook = new OrderBook();
+            while (jsonParser.hasNext()) {
+
+            }
+        }
+
+        return orderBook;
+    }
+
+
 }
-;
