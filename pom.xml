@@ -67,7 +67,6 @@
             <artifactId>tyrus-client</artifactId>
             <version>RELEASE</version>
         </dependency>
-
         <dependency>
             <groupId>com.miglayout</groupId>
             <artifactId>miglayout-javafx</artifactId>
