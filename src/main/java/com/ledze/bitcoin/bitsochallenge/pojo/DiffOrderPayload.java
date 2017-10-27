@@ -7,6 +7,7 @@ public class DiffOrderPayload {
     private String amount;
     private String value;
     private String oid;
+    private String status;
 
     public long getUnixTimestamp() {
         return unixTimestamp;
@@ -56,6 +57,14 @@ public class DiffOrderPayload {
         this.oid = oid;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     @Override
     public String toString() {
         return "DiffOrderPayload{" +
@@ -65,6 +74,7 @@ public class DiffOrderPayload {
                 ", amount='" + amount + '\'' +
                 ", value='" + value + '\'' +
                 ", oid='" + oid + '\'' +
+                ", status='" + status + '\'' +
                 '}';
     }
 }

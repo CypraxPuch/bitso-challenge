@@ -3,12 +3,14 @@ package com.ledze.bitcoin.bitsochallenge.util;
 
 import com.ledze.bitcoin.bitsochallenge.pojo.DiffOrder;
 import com.ledze.bitcoin.bitsochallenge.pojo.DiffOrderPayload;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.json.Json;
 import javax.json.stream.JsonParser;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class JsonUtil {
 
@@ -20,7 +22,6 @@ public class JsonUtil {
 
             diffOrder = new DiffOrder();
             while (jsonParser.hasNext()) {
-
                 if (jsonParser.next().equals(JsonParser.Event.KEY_NAME)) {
                     switch (jsonParser.getString()) {
                         case "type":
@@ -36,13 +37,11 @@ public class JsonUtil {
                             diffOrder.setSequence(jsonParser.getInt());
                             break;
                         case "payload":
-                            jsonParser.next();
                             diffOrder.setPayload(getDiffOrdersPayload(jsonParser));
                             break;
                         default:
                     }
                 }
-
             }
         }
 
@@ -53,13 +52,12 @@ public class JsonUtil {
         List<DiffOrderPayload> diffOrderPayloadList = null;
         DiffOrderPayload diffOrderPayload = null;
         while (jp.hasNext()) {
-            if (jp.next().equals(JsonParser.Event.START_ARRAY)) {
+            JsonParser.Event event = jp.next();
+            if (event.equals(JsonParser.Event.START_ARRAY)) {
                 diffOrderPayloadList = new ArrayList<>();
-                jp.next();
-            } else if (jp.next().equals(JsonParser.Event.START_OBJECT)) {
+            } else if (event.equals(JsonParser.Event.START_OBJECT)) {
                 diffOrderPayload = new DiffOrderPayload();
-                jp.next();
-            } else if (jp.next().equals(JsonParser.Event.KEY_NAME)) {
+            } else if (event.equals(JsonParser.Event.KEY_NAME)) {
                 switch (jp.getString()) {
                     case "d":
                         jp.next();
@@ -75,24 +73,26 @@ public class JsonUtil {
                         break;
                     case "a":
                         jp.next();
-                        diffOrderPayload.setAmount(jp.getString());
+                        diffOrderPayload.setAmount( Optional.ofNullable(jp.getString()).orElse(StringUtils.EMPTY) );
                         break;
                     case "v":
                         jp.next();
-                        diffOrderPayload.setValue(jp.getString());
+                        diffOrderPayload.setValue(Optional.ofNullable(jp.getString()).orElse(StringUtils.EMPTY));
                         break;
                     case "o":
                         jp.next();
-                        diffOrderPayload.setOid(jp.getString());
+                        diffOrderPayload.setOid(Optional.ofNullable(jp.getString()).orElse(StringUtils.EMPTY));
+                        break;
+                    case "s":
+                        jp.next();
+                        diffOrderPayload.setStatus(Optional.ofNullable(jp.getString()).orElse(StringUtils.EMPTY));
                         break;
                     default:
                         break;
                 }
-            } else if (jp.next().equals(JsonParser.Event.END_OBJECT)) {
+            } else if (event.equals(JsonParser.Event.END_OBJECT)) {
                 diffOrderPayloadList.add(diffOrderPayload);
-                jp.next();
-            } else if (jp.next().equals(JsonParser.Event.END_ARRAY)) {
-                jp.next();
+            } else if (event.equals(JsonParser.Event.END_ARRAY)) {
                 break;
             }
         }

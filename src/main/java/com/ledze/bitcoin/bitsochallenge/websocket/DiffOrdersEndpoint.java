@@ -38,8 +38,9 @@ public class DiffOrdersEndpoint {
 //        LOGGER.debug("Received response: '" + message + "' for request: '" + name + "' with session " + session.getId());
         //LOGGER.info(message);
         response = message;
-
-        ((Producer)StaticApplicationContext.getContext().getBean("producer")).send(message);
+        if( !message.contains("action") && !message.contains("response")) {
+            ((Producer) StaticApplicationContext.getContext().getBean("producer")).send(message);
+        }
         messageLatch.countDown();
     }
 

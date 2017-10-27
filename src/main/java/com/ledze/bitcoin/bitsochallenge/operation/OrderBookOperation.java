@@ -39,18 +39,16 @@ public class OrderBookOperation {
         LOGGER.info("Calling order book rest service");
         String orderBookJsonString = orderBookClient.getOrderBookList("btc_mxn", "false");
 
-        validateOrderBookAgainstDiffOrders();
 
     }
 
     @JmsListener(destination = "difforders.queue")
     public void receiveQueue(String text) {
-        //LOGGER.info(text);
+        //LOGGER.info("queue: "+text);
         diffOrders.add(JsonUtil.json2DiffOrder(text));
+        LOGGER.info("diffOrders size: "+diffOrders.size());
     }
 
     private void validateOrderBookAgainstDiffOrders(){
-        LOGGER.info("validateOrderBookAgainstDiffOrders");
-        diffOrders.forEach(o -> LOGGER.info(o.toString()));
     }
 }
