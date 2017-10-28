@@ -1,6 +1,9 @@
 package com.ledze.bitcoin.bitsochallenge.util;
 
 
+import com.ledze.bitcoin.bitsochallenge.client.Ask;
+import com.ledze.bitcoin.bitsochallenge.client.Bid;
+import com.ledze.bitcoin.bitsochallenge.client.Op;
 import com.ledze.bitcoin.bitsochallenge.client.OrderBook;
 import com.ledze.bitcoin.bitsochallenge.pojo.DiffOrder;
 import com.ledze.bitcoin.bitsochallenge.pojo.DiffOrderPayload;
@@ -100,19 +103,77 @@ public class JsonUtil {
         return diffOrderPayloadList;
     }
 
-    public static OrderBook json2OrderBook(String json){
+    public static OrderBook jsonToOrderBook(String json){
         OrderBook orderBook = null;
-        try (StringReader sr = new StringReader(json)) {
+        String newJson = json.substring(json.indexOf("\"payload\":")+"\"payload\":".length(),json.lastIndexOf("}"));
+        try (StringReader sr = new StringReader(newJson)) {
             JsonParser jsonParser = Json.createParser(sr);
 
             orderBook = new OrderBook();
             while (jsonParser.hasNext()) {
-
+                if (jsonParser.next().equals(JsonParser.Event.KEY_NAME)) {
+                    switch (jsonParser.getString()) {
+                        case "updated_at":
+                            jsonParser.next();
+                            orderBook.setSuccess(jsonParser.getString());
+                            break;
+                        case "sequence":
+                            jsonParser.next();
+                            orderBook.setSequence( Long.parseLong(jsonParser.getString()) );
+                            break;
+                        case "bids":
+                            orderBook.setBids( getBidsAsksFromPayload(jsonParser, "bids") );
+                            break;
+                        case "asks":
+                            orderBook.setAsks( getBidsAsksFromPayload(jsonParser, "asks") );
+                            break;
+                        default:
+                            break;
+                    }
+                }
             }
         }
 
         return orderBook;
     }
 
+    private static List<Op> getBidsAsksFromPayload(JsonParser jp, String typeOp) {
+        List<Op> lst = null;
+        Op op = null;
+        while (jp.hasNext()) {
+            JsonParser.Event event = jp.next();
+            if (event.equals(JsonParser.Event.START_ARRAY)) {
+                lst = new ArrayList<>();
+            } else if (event.equals(JsonParser.Event.START_OBJECT)) {
+                op = typeOp.equalsIgnoreCase("bids")?new Bid():new Ask();
+            } else if (event.equals(JsonParser.Event.KEY_NAME)) {
+                switch (jp.getString()) {
+                    case "book":
+                        jp.next();
+                        op.setBook( Optional.ofNullable(jp.getString()).orElse(StringUtils.EMPTY) );
+                        break;
+                    case "price":
+                        jp.next();
+                        op.setPrice( Optional.ofNullable(jp.getString()).orElse(StringUtils.EMPTY) );
+                        break;
+                    case "amount":
+                        jp.next();
+                        op.setAmount( Optional.ofNullable(jp.getString()).orElse(StringUtils.EMPTY) );
+                        break;
+                    case "oid":
+                        jp.next();
+                        op.setOid( Optional.ofNullable(jp.getString()).orElse(StringUtils.EMPTY) );
+                        break;
+                    default:
+                        break;
+                }
+            } else if (event.equals(JsonParser.Event.END_OBJECT)) {
+                lst.add(op);
+            } else if (event.equals(JsonParser.Event.END_ARRAY)) {
+                break;
+            }
+        }
+        return lst;
+    }
 
 }

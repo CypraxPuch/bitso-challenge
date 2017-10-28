@@ -37,4 +37,14 @@ public class Op {
     public void setOid(String oid) {
         this.oid = oid;
     }
+
+    @Override
+    public String toString() {
+        return "Op{" +
+                "book='" + book + '\'' +
+                ", price='" + price + '\'' +
+                ", amount='" + amount + '\'' +
+                ", oid='" + oid + '\'' +
+                '}';
+    }
 }

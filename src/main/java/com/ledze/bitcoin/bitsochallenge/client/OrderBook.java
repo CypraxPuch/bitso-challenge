@@ -6,8 +6,8 @@ import java.util.List;
 public class OrderBook {
     private String success;
     private String updatedAt;
-    private List<Bid> bids;
-    private List<Ask> asks;
+    private List<Op> bids;
+    private List<Op> asks;
     private long sequence;
 
     public String getSuccess() {
@@ -26,19 +26,19 @@ public class OrderBook {
         this.updatedAt = updatedAt;
     }
 
-    public List<Bid> getBids() {
+    public List<Op> getBids() {
         return bids;
     }
 
-    public void setBids(List<Bid> bids) {
+    public void setBids(List<Op> bids) {
         this.bids = bids;
     }
 
-    public List<Ask> getAsks() {
+    public List<Op> getAsks() {
         return asks;
     }
 
-    public void setAsks(List<Ask> asks) {
+    public void setAsks(List<Op> asks) {
         this.asks = asks;
     }
 
@@ -54,7 +54,7 @@ public class OrderBook {
     public String toString() {
         return "OrderBook{" +
                 "success='" + success + '\'' +
-                ", updatedAt=" + updatedAt +
+                ", updatedAt='" + updatedAt + '\'' +
                 ", bids=" + bids +
                 ", asks=" + asks +
                 ", sequence=" + sequence +
