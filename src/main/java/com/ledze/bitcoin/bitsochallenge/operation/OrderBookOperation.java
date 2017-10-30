@@ -29,11 +29,6 @@ public class OrderBookOperation {
 
     public void init() {
 
-        LOGGER.info("Calling order book rest service");
-        String orderBookJsonString = orderBookClient.getOrderBookList("btc_mxn", "false");
-        orderBookFull = JsonUtil.jsonToOrderBook(orderBookJsonString);
-        LOGGER.info("orderBookFull:\n"+orderBookFull);
-
         diffOrdersService.setUrl(WSS_URL);
 
         //se supone que aquí se encolan los mensajes de entrada del canal diff-orders
@@ -53,9 +48,19 @@ public class OrderBookOperation {
     public void receiveQueue(String text) {
         //LOGGER.info("queue: "+text);
         DiffOrder diffOrder = JsonUtil.json2DiffOrder(text);
-        if (diffOrder.getSequence() > orderBookFull.getSequence()) {
+
+        if( orderBookFull==null ) {
+            LOGGER.info("Calling order book rest service");
+            String orderBookJsonString = orderBookClient.getOrderBookList("btc_mxn", "false");
+            orderBookFull = JsonUtil.jsonToOrderBook(orderBookJsonString);
+            LOGGER.info("orderBookFull:\n" + orderBookFull);
+        }
+
+        if (diffOrder.getSequence()>0 && orderBookFull.getSequence() > diffOrder.getSequence()) {
             LOGGER.info("diffOrder: " + diffOrder);
             applyDiffOrder2FullOrderBookStruc(diffOrder);
+            //actualiza número de secuencia.
+            orderBookFull.setSequence(diffOrder.getSequence());
         }
     }
 
