@@ -31,7 +31,7 @@ public class OrderBookOperation {
 
         diffOrdersService.setUrl(WSS_URL);
 
-        //se supone que aquí se encolan los mensajes de entrada del canal diff-orders
+        //aquí se encolan los mensajes de entrada del canal diff-orders
         diffOrdersService.setOnSucceeded(event -> {
             LOGGER.info(diffOrdersService.getValue());
         });
@@ -44,15 +44,8 @@ public class OrderBookOperation {
 
     }
 
-    private static long initTime = Calendar.getInstance().getTimeInMillis();
-
     @JmsListener(destination = "difforders.queue")
     public void receiveQueue(String text) {
-        long otherTime = Calendar.getInstance().getTimeInMillis();
-        if( (otherTime - initTime)>5000) {
-            initTime = otherTime;
-            System.out.print(".");
-        }
         //LOGGER.info("queue: "+text);
         DiffOrder diffOrder = JsonUtil.json2DiffOrder(text);
 
@@ -89,18 +82,18 @@ public class OrderBookOperation {
                             for (int x = 0; x < orderBookFull.getBids().size() ; x++){
                                 Op o = orderBookFull.getBids().get(x);
                                 if(d.getOid().equalsIgnoreCase(o.getOid())) {
-                                    LOGGER.info("eliminando orden:"+o.getOid()+" bids size: "+orderBookFull.getBids().size());
+                                    int prevSize = orderBookFull.getBids().size();
                                     orderBookFull.getBids().remove(o);
-                                    LOGGER.info("bids size: "+orderBookFull.getBids().size());
+                                    LOGGER.info("(BID) elimina. antes: "+prevSize+" curr size: "+orderBookFull.getBids().size()+" orden:"+o.getOid() );
                                 }
                             }
                         } else if (listOidAsks.contains(d.getOid())) {
                             for (int x = 0; x < orderBookFull.getAsks().size() ; x++){
                                 Op o = orderBookFull.getAsks().get(x);
                                 if(d.getOid().equalsIgnoreCase(o.getOid())) {
-                                    LOGGER.info("eliminando orden:"+o.getOid()+" asks size: "+orderBookFull.getAsks().size());
+                                    int prevSize = orderBookFull.getAsks().size();
                                     orderBookFull.getAsks().remove(o);
-                                    LOGGER.info("asks size: "+orderBookFull.getAsks().size());
+                                    LOGGER.info("(ASK) elimina. antes: "+prevSize+" curr size: "+orderBookFull.getAsks().size()+" orden:"+o.getOid() );
                                 }
                             }
                         }
@@ -108,10 +101,9 @@ public class OrderBookOperation {
                         if (listOidBids.contains(d.getOid())) {
                             for (Op o : orderBookFull.getBids()) {
                                 if (o.getOid().equalsIgnoreCase(d.getOid())) {
-                                    LOGGER.info("diffOrder: " + diffOrder);
                                     o.setAmount(d.getAmount());
                                     o.setPrice(d.getRate());
-                                    LOGGER.info("bid updated on oid:"+o.getOid());
+                                    LOGGER.info("BID updated with:"+diffOrder);
                                     break;
                                 }
                             }
@@ -119,10 +111,9 @@ public class OrderBookOperation {
                         } else if (listOidAsks.contains(d.getOid())) {
                             for (Op o : orderBookFull.getAsks()) {
                                 if (o.getOid().equalsIgnoreCase(d.getOid())) {
-                                    LOGGER.info("diffOrder: " + diffOrder);
                                     o.setAmount(d.getAmount());
                                     o.setPrice(d.getRate());
-                                    LOGGER.info("ask updated on oid:"+o.getOid());
+                                    LOGGER.info("ASK updated with:"+diffOrder);
                                     break;
                                 }
                             }
