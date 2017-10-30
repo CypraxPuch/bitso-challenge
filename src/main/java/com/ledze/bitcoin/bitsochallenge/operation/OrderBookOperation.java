@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
+import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
@@ -44,8 +45,15 @@ public class OrderBookOperation {
 
     }
 
+    private static long initTime = Calendar.getInstance().getTimeInMillis();
+
     @JmsListener(destination = "difforders.queue")
     public void receiveQueue(String text) {
+        long otherTime = Calendar.getInstance().getTimeInMillis();
+        if( (otherTime - initTime)>5000) {
+            initTime = otherTime;
+            System.out.print(".");
+        }
         //LOGGER.info("queue: "+text);
         DiffOrder diffOrder = JsonUtil.json2DiffOrder(text);
 
@@ -56,11 +64,9 @@ public class OrderBookOperation {
             LOGGER.info("orderBookFull:\n" + orderBookFull);
         }
 
-        if (diffOrder.getSequence()>0 && orderBookFull.getSequence() > diffOrder.getSequence()) {
-            LOGGER.info("diffOrder: " + diffOrder);
+        //LOGGER.info("DO-seq: "+diffOrder.getSequence()+" OB-seq: "+orderBookFull.getSequence());
+        if (diffOrder.getSequence()>0 && diffOrder.getSequence() > orderBookFull.getSequence()) {
             applyDiffOrder2FullOrderBookStruc(diffOrder);
-            //actualiza número de secuencia.
-            orderBookFull.setSequence(diffOrder.getSequence());
         }
     }
 
@@ -83,9 +89,12 @@ public class OrderBookOperation {
                         if (listOidBids.contains(d.getOid())) {
                             for (Op o : orderBookFull.getBids()) {
                                 if (o.getOid().equalsIgnoreCase(d.getOid())) {
+                                    LOGGER.info("diffOrder: " + diffOrder);
                                     o.setAmount(d.getAmount());
                                     o.setPrice(d.getRate());
                                     LOGGER.info("bid updated on oid:"+o.getOid());
+                                    //actualiza número de secuencia.
+                                    orderBookFull.setSequence(diffOrder.getSequence());
                                     break;
                                 }
                             }
@@ -93,9 +102,12 @@ public class OrderBookOperation {
                         } else if (listOidAsks.contains(d.getOid())) {
                             for (Op o : orderBookFull.getAsks()) {
                                 if (o.getOid().equalsIgnoreCase(d.getOid())) {
+                                    LOGGER.info("diffOrder: " + diffOrder);
                                     o.setAmount(d.getAmount());
                                     o.setPrice(d.getRate());
                                     LOGGER.info("ask updated on oid:"+o.getOid());
+                                    //actualiza número de secuencia.
+                                    orderBookFull.setSequence(diffOrder.getSequence());
                                     break;
                                 }
                             }
