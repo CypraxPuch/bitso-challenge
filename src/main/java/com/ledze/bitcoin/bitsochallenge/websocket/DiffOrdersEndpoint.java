@@ -4,7 +4,6 @@ import com.ledze.bitcoin.bitsochallenge.configuration.StaticApplicationContext;
 import com.ledze.bitcoin.bitsochallenge.jms.Producer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Bean;
 
 import javax.websocket.*;
 import java.io.IOException;
@@ -21,7 +20,7 @@ public class DiffOrdersEndpoint {
     private String response;
     private Throwable exception;
     private final CountDownLatch messageLatch = new CountDownLatch(1);
-    private static final int REQUEST_TIMEOUT_SECS = 10;
+    private static final int REQUEST_TIMEOUT_SECS = 15;
 
     @OnOpen
     public void onOpen(Session session) {

@@ -1,8 +1,6 @@
 package com.ledze.bitcoin.bitsochallenge.util;
 
 
-import com.ledze.bitcoin.bitsochallenge.client.Ask;
-import com.ledze.bitcoin.bitsochallenge.client.Bid;
 import com.ledze.bitcoin.bitsochallenge.client.Op;
 import com.ledze.bitcoin.bitsochallenge.client.OrderBook;
 import com.ledze.bitcoin.bitsochallenge.pojo.DiffOrder;
@@ -15,6 +13,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class JsonUtil {
 
@@ -137,15 +136,15 @@ public class JsonUtil {
         return orderBook;
     }
 
-    private static List<Op> getBidsAsksFromPayload(JsonParser jp, String typeOp) {
-        List<Op> lst = null;
+    private static CopyOnWriteArrayList<Op> getBidsAsksFromPayload(JsonParser jp, String typeOp) {
+        CopyOnWriteArrayList<Op> lst = null;
         Op op = null;
         while (jp.hasNext()) {
             JsonParser.Event event = jp.next();
             if (event.equals(JsonParser.Event.START_ARRAY)) {
-                lst = new ArrayList<>();
+                lst = new CopyOnWriteArrayList<>();
             } else if (event.equals(JsonParser.Event.START_OBJECT)) {
-                op = typeOp.equalsIgnoreCase("bids")?new Bid():new Ask();
+                op = new Op();
             } else if (event.equals(JsonParser.Event.KEY_NAME)) {
                 switch (jp.getString()) {
                     case "book":

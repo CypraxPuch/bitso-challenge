@@ -6,6 +6,7 @@ import com.ledze.bitcoin.bitsochallenge.client.OrderBookClient;
 import com.ledze.bitcoin.bitsochallenge.pojo.DiffOrder;
 import com.ledze.bitcoin.bitsochallenge.service.DiffOrdersService;
 import com.ledze.bitcoin.bitsochallenge.util.JsonUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Calendar;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 @Component
@@ -25,7 +25,6 @@ public class OrderBookOperation {
     private DiffOrdersService diffOrdersService;
     @Autowired
     private OrderBookClient orderBookClient;
-    //private CopyOnWriteArrayList<DiffOrder> diffOrders = new CopyOnWriteArrayList<>();
     private OrderBook orderBookFull = null;
 
     public void init() {
@@ -66,11 +65,11 @@ public class OrderBookOperation {
 
         //LOGGER.info("DO-seq: "+diffOrder.getSequence()+" OB-seq: "+orderBookFull.getSequence());
         if (diffOrder.getSequence()>0 && diffOrder.getSequence() > orderBookFull.getSequence()) {
-            applyDiffOrder2FullOrderBookStruc(diffOrder);
+            applyDiffOrder2FullOrderBookStruct(diffOrder);
         }
     }
 
-    private void applyDiffOrder2FullOrderBookStruc(DiffOrder diffOrder) {
+    private void applyDiffOrder2FullOrderBookStruct(DiffOrder diffOrder) {
 
         List<String> listOidBids = this.orderBookFull.getBids()
                 .parallelStream()
@@ -85,7 +84,27 @@ public class OrderBookOperation {
         diffOrder.getPayload()
                 .parallelStream()
                 .forEach(d -> {
-                    if(d.getStatus().equalsIgnoreCase("open")) {
+                    if( d.getAmount()==null || d.getAmount().equalsIgnoreCase(StringUtils.EMPTY) ) {
+                        if (listOidBids.contains(d.getOid())) {
+                            for (int x = 0; x < orderBookFull.getBids().size() ; x++){
+                                Op o = orderBookFull.getBids().get(x);
+                                if(d.getOid().equalsIgnoreCase(o.getOid())) {
+                                    LOGGER.info("eliminando orden:"+o.getOid()+" bids size: "+orderBookFull.getBids().size());
+                                    orderBookFull.getBids().remove(o);
+                                    LOGGER.info("bids size: "+orderBookFull.getBids().size());
+                                }
+                            }
+                        } else if (listOidAsks.contains(d.getOid())) {
+                            for (int x = 0; x < orderBookFull.getAsks().size() ; x++){
+                                Op o = orderBookFull.getAsks().get(x);
+                                if(d.getOid().equalsIgnoreCase(o.getOid())) {
+                                    LOGGER.info("eliminando orden:"+o.getOid()+" asks size: "+orderBookFull.getAsks().size());
+                                    orderBookFull.getAsks().remove(o);
+                                    LOGGER.info("asks size: "+orderBookFull.getAsks().size());
+                                }
+                            }
+                        }
+                    } else if(d.getStatus().equalsIgnoreCase("open")) {
                         if (listOidBids.contains(d.getOid())) {
                             for (Op o : orderBookFull.getBids()) {
                                 if (o.getOid().equalsIgnoreCase(d.getOid())) {
@@ -93,8 +112,6 @@ public class OrderBookOperation {
                                     o.setAmount(d.getAmount());
                                     o.setPrice(d.getRate());
                                     LOGGER.info("bid updated on oid:"+o.getOid());
-                                    //actualiza número de secuencia.
-                                    orderBookFull.setSequence(diffOrder.getSequence());
                                     break;
                                 }
                             }
@@ -106,14 +123,30 @@ public class OrderBookOperation {
                                     o.setAmount(d.getAmount());
                                     o.setPrice(d.getRate());
                                     LOGGER.info("ask updated on oid:"+o.getOid());
-                                    //actualiza número de secuencia.
-                                    orderBookFull.setSequence(diffOrder.getSequence());
                                     break;
                                 }
                             }
                             //LOGGER.info("orderBook updated ASKS on oid: "+d.getOid()+"\n"+orderBookFull);
+                        } else {
+                            //es una nueva orden... hay que agregarla al order book
+                            Op operacionBidAsk = new Op();
+                            operacionBidAsk.setAmount(d.getAmount());
+                            operacionBidAsk.setBook("btc_mxn");
+                            operacionBidAsk.setOid(d.getOid());
+                            operacionBidAsk.setPrice(d.getRate());
+
+                            if(d.getTypeBuySell()==0) {
+                                orderBookFull.getBids().add(operacionBidAsk);
+                                LOGGER.info("add BID oid:"+operacionBidAsk.getOid()+ " new Size: "+orderBookFull.getBids().size());
+                            }else if(d.getTypeBuySell()==1) {
+                                orderBookFull.getAsks().add(operacionBidAsk);
+                                LOGGER.info("add ASK oid:"+operacionBidAsk.getOid()+ " new Size: "+orderBookFull.getAsks().size());
+                            }else
+                                LOGGER.error("Something it's wrong, the operation does not correspond to a valid one.");
                         }
                     }
+                    //actualiza número de secuencia.
+                    orderBookFull.setSequence(diffOrder.getSequence());
                 });
     }
 
