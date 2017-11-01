@@ -6,6 +6,7 @@ import com.ledze.bitcoin.bitsochallenge.client.OrderBookClient;
 import com.ledze.bitcoin.bitsochallenge.pojo.DiffOrder;
 import com.ledze.bitcoin.bitsochallenge.service.DiffOrdersService;
 import com.ledze.bitcoin.bitsochallenge.util.JsonUtil;
+import javafx.util.converter.BigDecimalStringConverter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +15,10 @@ import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Component
@@ -64,15 +68,8 @@ public class OrderBookOperation {
 
     private void applyDiffOrder2FullOrderBookStruct(DiffOrder diffOrder) {
 
-        List<String> listOidBids = this.orderBookFull.getBids()
-                .parallelStream()
-                .map(Op::getOid)
-                .collect(Collectors.toList());
-
-        List<String> listOidAsks = this.orderBookFull.getAsks()
-                .parallelStream()
-                .map(Op::getOid)
-                .collect(Collectors.toList());
+        List<String> listOidBids = getAllOidsFromOrderBookFull(this.orderBookFull.getBids());
+        List<String> listOidAsks = getAllOidsFromOrderBookFull(this.orderBookFull.getAsks());
 
         diffOrder.getPayload()
                 .parallelStream()
@@ -140,6 +137,28 @@ public class OrderBookOperation {
                     orderBookFull.setSequence(diffOrder.getSequence());
                 });
     }
+
+    private List<String> getAllOidsFromOrderBookFull(CopyOnWriteArrayList<Op> lstOp){
+        return lstOp
+                .parallelStream()
+                .map(Op::getOid)
+                .collect(Collectors.toList());
+    }
+
+    public List<Op> getBestXOp(int x, String Type){
+        CopyOnWriteArrayList<Op> lst = null;
+        if(Type.equalsIgnoreCase("Bids")){
+            this.orderBookFull.getBids()
+                    .stream()
+                    .filter(b -> b.getAmount()!=null && !b.getAmount().equalsIgnoreCase(StringUtils.EMPTY))
+                    .sorted(Comparator.comparing(a -> new BigDecimalStringConverter().fromString(a.getPrice()))
+                    ).collect(Collectors.toList());
+        } else {
+
+        }
+        return lst;
+    }
+
 
     public OrderBook getOrderBookFull() {
         return this.orderBookFull;
