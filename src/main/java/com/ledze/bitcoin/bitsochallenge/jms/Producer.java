@@ -14,7 +14,16 @@ public class Producer {
     @Autowired
     private Queue queue;
 
+    @Autowired
+    private Queue queueBestOps;
+
     public void send(String msg) {
         this.jmsMessagingTemplate.convertAndSend(this.queue, msg);
     }
+
+    public void sendToBestOps(String msg) {
+        this.jmsMessagingTemplate.convertAndSend(this.queueBestOps, msg);
+    }
+
+
 }

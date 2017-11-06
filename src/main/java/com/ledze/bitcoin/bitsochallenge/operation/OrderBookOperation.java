@@ -3,6 +3,8 @@ package com.ledze.bitcoin.bitsochallenge.operation;
 import com.ledze.bitcoin.bitsochallenge.client.Op;
 import com.ledze.bitcoin.bitsochallenge.client.OrderBook;
 import com.ledze.bitcoin.bitsochallenge.client.OrderBookClient;
+import com.ledze.bitcoin.bitsochallenge.configuration.StaticApplicationContext;
+import com.ledze.bitcoin.bitsochallenge.jms.Producer;
 import com.ledze.bitcoin.bitsochallenge.pojo.DiffOrder;
 import com.ledze.bitcoin.bitsochallenge.service.DiffOrdersService;
 import com.ledze.bitcoin.bitsochallenge.util.JsonUtil;
@@ -46,6 +48,17 @@ public class OrderBookOperation {
 
         diffOrdersService.restart();
 
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        int x = 10;
+        LOGGER.info("\n\n\nShowing the best {} bids/asks from order book.",x);
+        LOGGER.info("\n\n");
+        this.getLstBestBids().forEach( op -> LOGGER.info("bid: " + op.getPrice()+" oid: "+op.getOid()) );
+        LOGGER.info("\n\n");
+        this.getLstBestAsks().forEach( op -> LOGGER.info("ask: " + op.getPrice()+" oid: "+op.getOid()) );
     }
 
     @JmsListener(destination = "difforders.queue")
@@ -135,6 +148,7 @@ public class OrderBookOperation {
                     }
                     //actualiza número de secuencia.
                     orderBookFull.setSequence(diffOrder.getSequence());
+                    ((Producer) StaticApplicationContext.getContext().getBean("producer")).sendToBestOps("updated");
                 });
     }
 
@@ -145,20 +159,49 @@ public class OrderBookOperation {
                 .collect(Collectors.toList());
     }
 
-    public List<Op> getBestXOp(int x, String Type){
-        CopyOnWriteArrayList<Op> lst = null;
-        if(Type.equalsIgnoreCase("Bids")){
-            this.orderBookFull.getBids()
-                    .stream()
-                    .filter(b -> b.getAmount()!=null && !b.getAmount().equalsIgnoreCase(StringUtils.EMPTY))
-                    .sorted(Comparator.comparing(a -> new BigDecimalStringConverter().fromString(a.getPrice()))
-                    ).collect(Collectors.toList());
-        } else {
-
-        }
-        return lst;
+    @JmsListener(destination = "bestops.queue")
+    public void receiveQueueBestOps(String text) {
+        updateBestXOpsLst(10, "bids");
+        updateBestXOpsLst(10, "asks");
     }
 
+    private List<Op> lstBestBids = null;
+    private List<Op> lstBestAsks = null;
+
+    private void updateBestXOpsLst(int x, String Type){
+        List<Op> lst = null;
+        if(Type.equalsIgnoreCase("Bids")){
+            lst = this.orderBookFull.getBids().subList(0,(x+1));
+            lstBestBids = lst
+                    .stream()
+                    .filter(b -> b.getAmount()!=null && !b.getAmount().equalsIgnoreCase(StringUtils.EMPTY))
+                    .sorted(Comparator.comparing(Op::getPrice))
+                    .collect(Collectors.toList());
+        } else {
+            lst = this.orderBookFull.getAsks().subList(0,(x+1));
+            lstBestAsks = lst
+                    .stream()
+                    .filter(a -> a.getAmount()!=null && !a.getAmount().equalsIgnoreCase(StringUtils.EMPTY))
+                    .sorted(Comparator.comparing(Op::getPrice).reversed())
+                    .collect(Collectors.toList());
+        }
+    }
+
+    public List<Op> getLstBestBids() {
+        return lstBestBids;
+    }
+
+    public void setLstBestBids(List<Op> lstBestBids) {
+        this.lstBestBids = lstBestBids;
+    }
+
+    public List<Op> getLstBestAsks() {
+        return lstBestAsks;
+    }
+
+    public void setLstBestAsks(List<Op> lstBestAsks) {
+        this.lstBestAsks = lstBestAsks;
+    }
 
     public OrderBook getOrderBookFull() {
         return this.orderBookFull;

@@ -40,6 +40,11 @@ public class BitsoChallengeApplication  extends Application {
 		return new ActiveMQQueue("difforders.queue");
 	}
 
+	@Bean
+	public Queue queueBestOps(){
+		return new ActiveMQQueue("bestops.queue");
+	}
+
 	@Override
 	public void init() throws Exception {
 		SpringApplication app = new SpringApplication(BitsoChallengeApplication.class);
