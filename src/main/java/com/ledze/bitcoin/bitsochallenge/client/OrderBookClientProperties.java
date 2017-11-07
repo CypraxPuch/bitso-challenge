@@ -11,6 +11,7 @@ public class OrderBookClientProperties {
     private int connectTimeout;
     private String orderBookUrl;
     private String availableBooksUrl;
+    private String tradesUrl;
 
     public int getReadTimeout() {
         return readTimeout;
@@ -42,5 +43,13 @@ public class OrderBookClientProperties {
 
     public void setAvailableBooksUrl(String availableBooksUrl) {
         this.availableBooksUrl = availableBooksUrl;
+    }
+
+    public String getTradesUrl() {
+        return tradesUrl;
+    }
+
+    public void setTradesUrl(String tradesUrl) {
+        this.tradesUrl = tradesUrl;
     }
 }

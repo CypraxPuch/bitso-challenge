@@ -24,6 +24,7 @@ public class OrderBookClient {
 
     private final String orderBookServiceUrl;
     private final String availableBooksUrl;
+    private final String tradesUrl;
 
     public OrderBookClient(final RestTemplateBuilder builder, final OrderBookClientProperties clientProperties) {
         this.rest = builder.setReadTimeout(clientProperties.getReadTimeout())
@@ -31,6 +32,7 @@ public class OrderBookClient {
                 .build();
         this.orderBookServiceUrl = clientProperties.getOrderBookUrl();
         this.availableBooksUrl = clientProperties.getAvailableBooksUrl();
+        this.tradesUrl = clientProperties.getTradesUrl();
     }
 
     private String getJsonFromCall(String url, Object... params) {
@@ -104,5 +106,11 @@ public class OrderBookClient {
         }
 
         return book;
+    }
+
+    public String getRecentTrades(String book, String limit) {
+
+        LOGGER.info("getting recent trades");
+        return this.getJsonFromCall(this.tradesUrl, book, limit);
     }
 }
