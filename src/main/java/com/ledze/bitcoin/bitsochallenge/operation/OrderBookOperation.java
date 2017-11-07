@@ -148,6 +148,7 @@ public class OrderBookOperation {
                     }
                     //actualiza número de secuencia.
                     orderBookFull.setSequence(diffOrder.getSequence());
+                    //indica a la queue bestops que hay bids y asks para que obtenga los mejores que se le indiquen
                     ((Producer) StaticApplicationContext.getContext().getBean("producer")).sendToBestOps("updated");
                 });
     }
@@ -171,19 +172,21 @@ public class OrderBookOperation {
     private void updateBestXOpsLst(int x, String Type){
         List<Op> lst = null;
         if(Type.equalsIgnoreCase("Bids")){
-            lst = this.orderBookFull.getBids().subList(0,(x+1));
+            lst = this.orderBookFull.getBids();
             lstBestBids = lst
                     .stream()
                     .filter(b -> b.getAmount()!=null && !b.getAmount().equalsIgnoreCase(StringUtils.EMPTY))
-                    .sorted(Comparator.comparing(Op::getPrice))
-                    .collect(Collectors.toList());
+                    .sorted(Comparator.comparing(Op::getPrice).reversed())
+                    .collect(Collectors.toList())
+                    .subList(0,x);
         } else {
-            lst = this.orderBookFull.getAsks().subList(0,(x+1));
+            lst = this.orderBookFull.getAsks();
             lstBestAsks = lst
                     .stream()
                     .filter(a -> a.getAmount()!=null && !a.getAmount().equalsIgnoreCase(StringUtils.EMPTY))
                     .sorted(Comparator.comparing(Op::getPrice).reversed())
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toList())
+                    .subList(0,x);
         }
     }
 
