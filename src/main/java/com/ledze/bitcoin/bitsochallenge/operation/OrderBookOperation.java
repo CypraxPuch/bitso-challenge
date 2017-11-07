@@ -8,7 +8,6 @@ import com.ledze.bitcoin.bitsochallenge.jms.Producer;
 import com.ledze.bitcoin.bitsochallenge.pojo.DiffOrder;
 import com.ledze.bitcoin.bitsochallenge.service.DiffOrdersService;
 import com.ledze.bitcoin.bitsochallenge.util.JsonUtil;
-import javafx.util.converter.BigDecimalStringConverter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,11 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
-import java.util.Calendar;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Component
@@ -59,6 +56,11 @@ public class OrderBookOperation {
         this.getLstBestBids().forEach( op -> LOGGER.info("bid: " + op.getPrice()+" oid: "+op.getOid()) );
         LOGGER.info("\n\n");
         this.getLstBestAsks().forEach( op -> LOGGER.info("ask: " + op.getPrice()+" oid: "+op.getOid()) );
+
+
+        LOGGER.info("\n\n\ngetting Recent trades info.");
+        LOGGER.info("\n\n"+getRecentTradesInfo("btc_mxn", 10));
+        ;
     }
 
     @JmsListener(destination = "difforders.queue")
@@ -188,6 +190,10 @@ public class OrderBookOperation {
                     .collect(Collectors.toList())
                     .subList(0,x);
         }
+    }
+
+    public String getRecentTradesInfo(String book, int limit){
+        return orderBookClient.getRecentTrades(book, String.valueOf(limit) );
     }
 
     public List<Op> getLstBestBids() {
