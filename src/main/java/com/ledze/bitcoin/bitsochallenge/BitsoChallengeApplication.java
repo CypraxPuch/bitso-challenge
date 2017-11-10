@@ -53,7 +53,7 @@ public class BitsoChallengeApplication  extends Application {
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(this);
 
 		//starts the subscription to diffOrders channel and get the orderBook info.
-		op.init();
+		//op.init();
 	}
 
 	@Override

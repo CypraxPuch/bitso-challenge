@@ -65,7 +65,7 @@ public class OrderBookOperation {
         ;
     }
 
-    @JmsListener(destination = "difforders.queue")
+    /*@JmsListener(destination = "difforders.queue")
     public void receiveQueue(String text) {
         //LOGGER.info("queue: "+text);
         DiffOrder diffOrder = JsonUtil.json2DiffOrder(text);
@@ -81,7 +81,7 @@ public class OrderBookOperation {
         if (diffOrder.getSequence()>0 && diffOrder.getSequence() > orderBookFull.getSequence()) {
             applyDiffOrder2FullOrderBookStruct(diffOrder);
         }
-    }
+    }*/
 
     private void applyDiffOrder2FullOrderBookStruct(DiffOrder diffOrder) {
 

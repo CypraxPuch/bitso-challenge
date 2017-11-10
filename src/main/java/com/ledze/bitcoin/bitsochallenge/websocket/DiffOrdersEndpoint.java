@@ -35,7 +35,7 @@ public class DiffOrdersEndpoint {
     @OnMessage
     public void processResponse(Session session, String message) {
 //        LOGGER.debug("Received response: '" + message + "' for request: '" + name + "' with session " + session.getId());
-        //LOGGER.info(message);
+        LOGGER.info(message);
         response = message;
         if( !message.contains("action") && !message.contains("response")) {
             ((Producer) StaticApplicationContext.getContext().getBean("producer")).send(message);
