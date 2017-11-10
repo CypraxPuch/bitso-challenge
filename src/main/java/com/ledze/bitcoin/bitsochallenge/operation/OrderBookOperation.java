@@ -44,6 +44,7 @@ public class OrderBookOperation {
         );
 
         diffOrdersService.restart();
+/*
 
         try {
             Thread.sleep(5000);
@@ -57,6 +58,7 @@ public class OrderBookOperation {
         LOGGER.info("\n\n");
         this.getLstBestAsks().forEach( op -> LOGGER.info("ask: " + op.getPrice()+" oid: "+op.getOid()) );
 
+*/
 
         LOGGER.info("\n\n\ngetting Recent trades info.");
         LOGGER.info("\n\n"+getRecentTradesInfo("btc_mxn", 10));

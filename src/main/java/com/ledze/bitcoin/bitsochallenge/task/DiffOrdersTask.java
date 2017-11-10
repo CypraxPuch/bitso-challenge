@@ -3,6 +3,8 @@ package com.ledze.bitcoin.bitsochallenge.task;
 import com.ledze.bitcoin.bitsochallenge.websocket.DiffOrdersEndpoint;
 import javafx.concurrent.Task;
 import org.glassfish.tyrus.client.ClientManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.websocket.DeploymentException;
@@ -11,7 +13,7 @@ import java.net.URI;
 
 @Component
 public class DiffOrdersTask extends Task<String>{
-    //private static final Logger LOGGER = LoggerFactory.getLogger(DiffOrdersTask.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DiffOrdersTask.class);
     private String subscriptionMessage;
     private String serverEndpointUrl;
 
@@ -31,12 +33,14 @@ public class DiffOrdersTask extends Task<String>{
             );
 
             response = clientEndpoint.getResponse();
+            //updateValue(getValue()+"\n");
         } catch (DeploymentException e) {
             throw new IOException(e);
         } catch (InterruptedException e) {
             Thread.interrupted();
         }
 
+        LOGGER.info("response: "+response);
         return response;
     }
 

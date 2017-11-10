@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import org.tbee.javafx.scene.layout.fxml.*?>
 
 <MigPane id="rootPane" fx:controller="com.ledze.bitcoin.bitsochallenge.controller.RealTimeOrderBookStateController"
@@ -15,5 +16,8 @@
     <Button text="Show best bids and asks" onAction="#showBestBidsAndAsks" MigPane.cc="skip, gap :push, gaptop 15, wrap" />
 
     <Label fx:id="messageLabel" styleClass="hello-message" MigPane.cc="span, growx, gaptop 15" />
+
+    <TextArea fx:id="consoleLogscreen" layoutX="15.0" layoutY="10.0" prefHeight="487.0" prefWidth="287.0" wrapText="true"
+              AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
 
 </MigPane >
